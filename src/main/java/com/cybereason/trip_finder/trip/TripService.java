@@ -12,25 +12,16 @@ public class TripService {
 
 	public List<Trip> getTripsByUser(User user, String description) throws UserNotLoggedInException {
 		List<Trip> tripList = new ArrayList<>();
-		User loggedUser = UserSession.getInstance().getLoggedUser();
+		User loggedUser = getLoggedUser();
 
-		boolean isFriend = false;
 		if (loggedUser != null) {
-			for (User friend : user.getFriends()) {
-				if (friend.equals(loggedUser)) {
-					isFriend = true;
-					break;
-				}
-			}
+			boolean isFriend = user.isFriend(loggedUser);
 
 			if (isFriend) {
-				tripList = TripDAO.findTripsByUser(user);
+				tripList = findTripsByUser(user);
 			}
 
-			for(Iterator<Trip> iterator = tripList.iterator() ; iterator.hasNext() ; ){
-				if(!iterator.next().getInformation().contains(description))
-					iterator.remove();
-			}
+			tripsWithGivenDescription(description, tripList);
 
 			return tripList;
 
@@ -39,5 +30,20 @@ public class TripService {
 
 		}
 	}
-	
+
+	private void tripsWithGivenDescription(String description, List<Trip> tripList) {
+		for(Iterator<Trip> iterator = tripList.iterator(); iterator.hasNext() ; ){
+			if(!iterator.next().getInformation().contains(description))
+				iterator.remove();
+		}
+	}
+
+	protected List<Trip> findTripsByUser(User user) {
+		return TripDAO.findTripsByUser(user);
+	}
+
+	protected User getLoggedUser() {
+		return UserSession.getInstance().getLoggedUser();
+	}
+
 }
